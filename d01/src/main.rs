@@ -1,7 +1,9 @@
-use std::{path::Path, fs::File, io::{BufReader, BufRead}};
+use std::io::BufRead;
+use std::path::Path;
 
 use aho_corasick::AhoCorasick;
 use aoc_utils::Cli;
+use aoc_utils::input_buffer_reader;
 
 fn main() {
     let cli = Cli::parse_args();
@@ -19,9 +21,7 @@ fn main() {
 const PATTERNS: [&str; 18] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
 fn calibration_value<P: AsRef<Path>>(input: P, patterns: &[&str]) -> u64 {
-    let file = File::open(input).unwrap();
-    let reader = BufReader::new(file);
-
+    let reader = input_buffer_reader(input);
     let ac = AhoCorasick::new(patterns).unwrap();
 
     let mut total = 0;
