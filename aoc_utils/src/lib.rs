@@ -1,4 +1,4 @@
-use std::{path::Path, io::BufReader, fs::File};
+use std::{fs::File, io::BufReader, path::Path};
 
 use clap::Parser;
 
@@ -6,7 +6,7 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     #[arg(short, long)]
-    pub part_two: bool
+    pub part_two: bool,
 }
 
 impl Cli {
