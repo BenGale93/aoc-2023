@@ -1,11 +1,17 @@
 use core::panic;
 use std::{io::BufRead, path::Path};
 
-use aoc_utils::input_buffer_reader;
+use aoc_utils::{input_buffer_reader, Cli};
 
 fn main() {
-    let result = cube_conundrum("input");
-    println!("Cube game value is: {result}")
+    let cli = Cli::parse_args();
+    if cli.part_two {
+        let result = cube_conundrum_part2("input");
+        println!("Cube game power is: {result}")
+    } else {
+        let result = cube_conundrum("input");
+        println!("Cube game value is: {result}")
+    }
 }
 
 struct GameSubset {
@@ -39,17 +45,19 @@ impl GameSubset {
 
         Self::new(red, green, blue)
     }
+
+    fn is_valid(&self, test_case: &GameSubset) -> bool {
+        !(self.red > test_case.red || self.green > test_case.green || self.blue > test_case.blue)
+    }
+
+    fn power(&self) -> u64 {
+        self.red * self.green * self.blue
+    }
 }
 
 struct GameResult {
     id: u64,
     subsets: Vec<GameSubset>,
-}
-
-impl GameSubset {
-    fn is_valid(&self, test_case: &GameSubset) -> bool {
-        !(self.red > test_case.red || self.green > test_case.green || self.blue > test_case.blue)
-    }
 }
 
 impl GameResult {
@@ -80,6 +88,14 @@ impl GameResult {
             .map(|s| s.is_valid(test_case))
             .all(|x| x)
     }
+
+    fn minimum(&self) -> GameSubset {
+        let red = self.subsets.iter().map(|x| x.red).max().unwrap();
+        let green = self.subsets.iter().map(|x| x.green).max().unwrap();
+        let blue = self.subsets.iter().map(|x| x.blue).max().unwrap();
+
+        GameSubset { red, green, blue }
+    }
 }
 
 fn cube_conundrum<P: AsRef<Path>>(input: P) -> u64 {
@@ -99,6 +115,21 @@ fn cube_conundrum<P: AsRef<Path>>(input: P) -> u64 {
     total
 }
 
+fn cube_conundrum_part2<P: AsRef<Path>>(input: P) -> u64 {
+    let reader = input_buffer_reader(input);
+
+    let mut total = 0;
+
+    for line in reader.lines() {
+        let line = line.unwrap();
+        let game_result = GameResult::parse(&line);
+        let min_power = game_result.minimum().power();
+        total += min_power;
+    }
+
+    total
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,6 +138,12 @@ mod tests {
     fn part_one() {
         let result = cube_conundrum("test_part1");
         assert_eq!(result, 8);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = cube_conundrum_part2("test_part1");
+        assert_eq!(result, 2286);
     }
 
     #[test]
