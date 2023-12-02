@@ -16,10 +16,10 @@ fn main() {
     let lines = puzzle_input_lines("input");
     if cli.part_two {
         let result = cube_conundrum_part2(lines);
-        println!("Cube game power is: {result}")
+        println!("Cube game power is: {result}");
     } else {
         let result = cube_conundrum(lines);
-        println!("Cube game value is: {result}")
+        println!("Cube game value is: {result}");
     }
 }
 
@@ -30,7 +30,7 @@ struct GameSubset {
 }
 
 impl GameSubset {
-    fn new(red: u64, green: u64, blue: u64) -> Self {
+    const fn new(red: u64, green: u64, blue: u64) -> Self {
         Self { red, green, blue }
     }
 
@@ -55,11 +55,11 @@ impl GameSubset {
         Ok((next_input, Self::new(red, green, blue)))
     }
 
-    fn is_valid(&self, test_case: &GameSubset) -> bool {
+    const fn is_valid(&self, test_case: &Self) -> bool {
         !(self.red > test_case.red || self.green > test_case.green || self.blue > test_case.blue)
     }
 
-    fn power(&self) -> u64 {
+    const fn power(&self) -> u64 {
         self.red * self.green * self.blue
     }
 }
@@ -103,7 +103,7 @@ impl GameResult {
 fn conundrum_parser(lines: PuzzleLines) -> Vec<GameResult> {
     lines
         .into_iter()
-        .map(|l| l.unwrap())
+        .map(Result::unwrap)
         .map(|g| GameResult::parse(&g).unwrap().1)
         .collect()
 }

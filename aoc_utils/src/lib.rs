@@ -14,8 +14,9 @@ pub struct Cli {
 }
 
 impl Cli {
+    #[must_use]
     pub fn parse_args() -> Self {
-        Cli::parse()
+        Self::parse()
     }
 }
 

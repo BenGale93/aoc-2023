@@ -13,7 +13,7 @@ fn main() {
     };
 
     let result = calibration_value("input", patterns);
-    println!("Calibration value is: {result}")
+    println!("Calibration value is: {result}");
 }
 
 const PATTERNS: [&str; 18] = [
@@ -30,7 +30,7 @@ fn calibration_value<P: AsRef<Path>>(input: P, patterns: &[&str]) -> u64 {
         let actual_line = line.unwrap();
         let mut matches = vec![];
         for mat in ac.find_overlapping_iter(&actual_line) {
-            matches.push(&actual_line[mat.start()..mat.end()])
+            matches.push(&actual_line[mat.start()..mat.end()]);
         }
         let value = get_first_last(&matches);
         total += value;
