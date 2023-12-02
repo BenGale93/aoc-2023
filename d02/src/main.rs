@@ -100,14 +100,21 @@ impl GameResult {
     }
 }
 
+fn conundrum_parser(lines: PuzzleLines) -> Vec<GameResult> {
+    lines
+        .into_iter()
+        .map(|l| l.unwrap())
+        .map(|g| GameResult::parse(&g).unwrap().1)
+        .collect()
+}
+
 fn cube_conundrum(lines: PuzzleLines) -> u64 {
+    let conundrum = conundrum_parser(lines);
     let test_case = GameSubset::new(12, 13, 14);
 
     let mut total = 0;
 
-    for line in lines {
-        let line = line.unwrap();
-        let (_, game_result) = GameResult::parse(&line).unwrap();
+    for game_result in conundrum {
         if game_result.is_valid(&test_case) {
             total += game_result.id;
         }
@@ -117,11 +124,10 @@ fn cube_conundrum(lines: PuzzleLines) -> u64 {
 }
 
 fn cube_conundrum_part2(lines: PuzzleLines) -> u64 {
+    let conundrum = conundrum_parser(lines);
     let mut total = 0;
 
-    for line in lines {
-        let line = line.unwrap();
-        let (_, game_result) = GameResult::parse(&line).unwrap();
+    for game_result in conundrum {
         let min_power = game_result.minimum().power();
         total += min_power;
     }
