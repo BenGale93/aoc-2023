@@ -1,7 +1,7 @@
-use std::{io::BufRead, path::Path};
+use std::path::Path;
 
 use aho_corasick::AhoCorasick;
-use aoc_utils::{input_buffer_reader, Cli};
+use aoc_utils::{puzzle_input_lines, Cli};
 
 fn main() {
     let cli = Cli::parse_args();
@@ -22,11 +22,11 @@ const PATTERNS: [&str; 18] = [
 ];
 
 fn calibration_value<P: AsRef<Path>>(input: P, patterns: &[&str]) -> u64 {
-    let reader = input_buffer_reader(input);
+    let lines = puzzle_input_lines(input);
     let ac = AhoCorasick::new(patterns).unwrap();
 
     let mut total = 0;
-    for line in reader.lines() {
+    for line in lines {
         let actual_line = line.unwrap();
         let mut matches = vec![];
         for mat in ac.find_overlapping_iter(&actual_line) {

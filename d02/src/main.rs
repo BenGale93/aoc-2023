@@ -1,15 +1,15 @@
 use core::panic;
-use std::{io::BufRead, path::Path};
 
-use aoc_utils::{input_buffer_reader, Cli};
+use aoc_utils::{puzzle_input_lines, Cli, PuzzleLines};
 
 fn main() {
     let cli = Cli::parse_args();
+    let lines = puzzle_input_lines("input");
     if cli.part_two {
-        let result = cube_conundrum_part2("input");
+        let result = cube_conundrum_part2(lines);
         println!("Cube game power is: {result}")
     } else {
-        let result = cube_conundrum("input");
+        let result = cube_conundrum(lines);
         println!("Cube game value is: {result}")
     }
 }
@@ -98,13 +98,12 @@ impl GameResult {
     }
 }
 
-fn cube_conundrum<P: AsRef<Path>>(input: P) -> u64 {
-    let reader = input_buffer_reader(input);
+fn cube_conundrum(lines: PuzzleLines) -> u64 {
     let test_case = GameSubset::new(12, 13, 14);
 
     let mut total = 0;
 
-    for line in reader.lines() {
+    for line in lines {
         let line = line.unwrap();
         let game_result = GameResult::parse(&line);
         if game_result.is_valid(&test_case) {
@@ -115,12 +114,10 @@ fn cube_conundrum<P: AsRef<Path>>(input: P) -> u64 {
     total
 }
 
-fn cube_conundrum_part2<P: AsRef<Path>>(input: P) -> u64 {
-    let reader = input_buffer_reader(input);
-
+fn cube_conundrum_part2(lines: PuzzleLines) -> u64 {
     let mut total = 0;
 
-    for line in reader.lines() {
+    for line in lines {
         let line = line.unwrap();
         let game_result = GameResult::parse(&line);
         let min_power = game_result.minimum().power();
@@ -136,13 +133,15 @@ mod tests {
 
     #[test]
     fn part_one() {
-        let result = cube_conundrum("test_part1");
+        let lines = puzzle_input_lines("test_part1");
+        let result = cube_conundrum(lines);
         assert_eq!(result, 8);
     }
 
     #[test]
     fn part_two() {
-        let result = cube_conundrum_part2("test_part1");
+        let lines = puzzle_input_lines("test_part1");
+        let result = cube_conundrum_part2(lines);
         assert_eq!(result, 2286);
     }
 

@@ -1,4 +1,8 @@
-use std::{fs::File, io::BufReader, path::Path};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader, Lines},
+    path::Path,
+};
 
 use clap::Parser;
 
@@ -15,7 +19,10 @@ impl Cli {
     }
 }
 
-pub fn input_buffer_reader<P: AsRef<Path>>(input: P) -> BufReader<File> {
+pub type PuzzleLines = Lines<BufReader<File>>;
+
+pub fn puzzle_input_lines<P: AsRef<Path>>(input: P) -> PuzzleLines {
     let file = File::open(input).expect("Could not find file {input}");
-    BufReader::new(file)
+    let reader = BufReader::new(file);
+    reader.lines()
 }
