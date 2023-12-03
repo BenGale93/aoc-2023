@@ -112,27 +112,16 @@ fn cube_conundrum(lines: PuzzleLines) -> u64 {
     let conundrum = conundrum_parser(lines);
     let test_case = GameSubset::new(12, 13, 14);
 
-    let mut total = 0;
-
-    for game_result in conundrum {
-        if game_result.is_valid(&test_case) {
-            total += game_result.id;
-        }
-    }
-
-    total
+    conundrum
+        .iter()
+        .filter(|g| g.is_valid(&test_case))
+        .map(|g| g.id)
+        .sum()
 }
 
 fn cube_conundrum_part2(lines: PuzzleLines) -> u64 {
     let conundrum = conundrum_parser(lines);
-    let mut total = 0;
-
-    for game_result in conundrum {
-        let min_power = game_result.minimum().power();
-        total += min_power;
-    }
-
-    total
+    conundrum.iter().map(|g| g.minimum().power()).sum()
 }
 
 #[cfg(test)]
