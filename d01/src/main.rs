@@ -27,11 +27,11 @@ fn calibration_value<P: AsRef<Path>>(input: P, patterns: &[&str]) -> u64 {
 
     let mut total = 0;
     for line in lines {
-        let actual_line = line.unwrap();
-        let mut matches = vec![];
-        for mat in ac.find_overlapping_iter(&actual_line) {
-            matches.push(&actual_line[mat.start()..mat.end()]);
-        }
+        let line = line.unwrap();
+        let matches: Vec<&str> = ac
+            .find_overlapping_iter(&line)
+            .map(|mat| &line[mat.range()])
+            .collect();
         let value = get_first_last(&matches);
         total += value;
     }
