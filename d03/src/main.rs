@@ -27,9 +27,7 @@ fn part_number_sum(input: impl AsRef<Path>) -> u64 {
     let padding = ".".repeat(puzzle_width);
 
     for (i, row) in engine_schema.iter().enumerate() {
-        let number_matches: Vec<_> = digits.find_iter(row).collect();
-
-        for number_match in number_matches {
+        for number_match in digits.find_iter(row) {
             let number_range = {
                 let start = number_match.start().saturating_sub(1);
                 let end = puzzle_width.min(number_match.end() + 1);
@@ -70,9 +68,7 @@ fn gear_ratio_sum(input: impl AsRef<Path>) -> u64 {
     let padding = ".".repeat(puzzle_width);
 
     for (i, row) in engine_schema.iter().enumerate() {
-        let gear_matches: Vec<_> = gear.find_iter(row).collect();
-
-        for gear_match in gear_matches {
+        for gear_match in gear.find_iter(row) {
             let gear_range = {
                 let start = gear_match.start().saturating_sub(1);
                 let end = puzzle_width.min(gear_match.start() + 1);
