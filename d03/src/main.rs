@@ -41,9 +41,11 @@ fn part_number_sum(input: impl AsRef<Path>) -> u64 {
 
             for j in row_range {
                 let test_row = engine_schema.get(j).unwrap_or(&padding);
-                let symbol_matches: Vec<_> =
-                    symbols.find_iter(&test_row[number_range.clone()]).collect();
-                if symbol_matches.is_empty() {
+                if symbols
+                    .find_iter(&test_row[number_range.clone()])
+                    .next()
+                    .is_none()
+                {
                     continue;
                 }
                 let valid_number: u64 = number_match.as_str().parse().unwrap();
@@ -102,7 +104,7 @@ fn gear_ratio_sum(input: impl AsRef<Path>) -> u64 {
     total
 }
 
-fn overlapping(digit_range: &Range<usize>, gear_range: &Range<usize>) -> bool {
+const fn overlapping(digit_range: &Range<usize>, gear_range: &Range<usize>) -> bool {
     digit_range.start <= gear_range.end && gear_range.start < digit_range.end
 }
 
