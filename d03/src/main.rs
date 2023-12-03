@@ -30,14 +30,21 @@ fn part_number_sum(input: impl AsRef<Path>) -> u64 {
         let number_matches: Vec<_> = digits.find_iter(row).collect();
 
         for number_match in number_matches {
-            let start = number_match.start().saturating_sub(1);
-            let end = puzzle_width.min(number_match.end() + 1);
-            let row_above = i.saturating_sub(1);
-            let row_below = puzzle_length.min(i + 1);
+            let number_range = {
+                let start = number_match.start().saturating_sub(1);
+                let end = puzzle_width.min(number_match.end() + 1);
+                start..end
+            };
+            let row_range = {
+                let row_above = i.saturating_sub(1);
+                let row_below = puzzle_length.min(i + 1);
+                row_above..=row_below
+            };
 
-            for j in row_above..=row_below {
+            for j in row_range {
                 let test_row = engine_schema.get(j).unwrap_or(&padding);
-                let symbol_matches: Vec<_> = symbols.find_iter(&test_row[start..end]).collect();
+                let symbol_matches: Vec<_> =
+                    symbols.find_iter(&test_row[number_range.clone()]).collect();
                 if symbol_matches.is_empty() {
                     continue;
                 }
@@ -72,14 +79,16 @@ fn gear_ratio_sum(input: impl AsRef<Path>) -> u64 {
                 start..end
             };
 
-            let row_above = i.saturating_sub(1);
-            let row_below = puzzle_length.min(i + 1);
+            let row_range = {
+                let row_above = i.saturating_sub(1);
+                let row_below = puzzle_length.min(i + 1);
+                row_above..=row_below
+            };
 
             let mut valid_digits: Vec<String> = vec![];
-            for j in row_above..=row_below {
+            for j in row_range {
                 let test_row = engine_schema.get(j).unwrap_or(&padding);
-                let digit_matches: Vec<_> = digits.find_iter(test_row).collect();
-                for digit_match in digit_matches {
+                for digit_match in digits.find_iter(test_row) {
                     if overlapping(&digit_match.range(), &gear_range) {
                         valid_digits.push(digit_match.as_str().to_string());
                     }
