@@ -60,6 +60,7 @@ fn part_number_sum(input: impl AsRef<Path>) -> u64 {
 
 fn gear_ratio_sum(input: impl AsRef<Path>) -> u64 {
     let digits = Regex::new(r"\d+").unwrap();
+    #[allow(clippy::trivial_regex)]
     let gear = Regex::new(r"[*]").unwrap();
 
     let engine_schema = get_entire_puzzle(input);

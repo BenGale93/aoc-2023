@@ -22,12 +22,14 @@ impl Cli {
 
 pub type PuzzleLines = Lines<BufReader<File>>;
 
+#[allow(clippy::missing_panics_doc)]
 pub fn puzzle_input_lines<P: AsRef<Path>>(input: P) -> PuzzleLines {
     let file = File::open(input).expect("Could not find file {input}");
     let reader = BufReader::new(file);
     reader.lines()
 }
 
+#[allow(clippy::missing_panics_doc)]
 pub fn get_entire_puzzle(filename: impl AsRef<Path>) -> Vec<String> {
     let file = File::open(filename).expect("no such file");
     let buf = BufReader::new(file);
