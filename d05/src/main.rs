@@ -1,6 +1,7 @@
 use std::{fs, ops::Range, path::Path};
 
 use aoc_utils::Cli;
+use rayon::prelude::*;
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -137,25 +138,32 @@ fn lowest_seed_location_part2(input: impl AsRef<Path>) -> u64 {
         processed_maps.push(processed_map);
     }
 
-    let mut lowest: u64 = u64::MAX;
-    for seed_range in seed_ranges {
-        for seed in seed_range {
-            let mut current_number = seed;
-            for map in &processed_maps {
-                for m in map {
-                    let source = m.first().unwrap();
-                    let destination = m.last().unwrap();
-                    if source.contains(&current_number) {
-                        current_number = (current_number - source.start) + destination.start;
-                        break;
+    let lowest = seed_ranges
+        .par_iter()
+        .map(|sr| {
+            sr.clone()
+                .into_par_iter()
+                .map(|s| {
+                    let mut current_number = s;
+                    for map in &processed_maps {
+                        for m in map {
+                            let source = m.first().unwrap();
+                            let destination = m.last().unwrap();
+                            if source.contains(&current_number) {
+                                current_number =
+                                    (current_number - source.start) + destination.start;
+                                break;
+                            }
+                        }
                     }
-                }
-            }
-            lowest = current_number.min(lowest);
-        }
-    }
+                    current_number
+                })
+                .min()
+                .unwrap()
+        })
+        .collect::<Vec<u64>>();
 
-    lowest
+    *lowest.iter().min().unwrap()
 }
 
 #[cfg(test)]
