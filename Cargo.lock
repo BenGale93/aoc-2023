@@ -160,6 +160,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "d05"
+version = "0.1.0"
+dependencies = [
+ "aoc_utils",
+]
+
+[[package]]
 name = "fancy-regex"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
