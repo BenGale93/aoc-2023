@@ -1,7 +1,6 @@
 use std::{fs, ops::Range, path::Path};
 
 use aoc_utils::Cli;
-use rayon::prelude::*;
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
