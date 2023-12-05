@@ -52,7 +52,7 @@ fn parse_puzzle(input: impl AsRef<Path>) -> (Vec<u64>, Vec<Vec<Vec<u64>>>) {
 
 fn lowest_seed_location_part1(input: impl AsRef<Path>) -> u64 {
     let (seeds, maps) = parse_puzzle(input);
-    let mut processed_maps: Vec<Vec<Vec<Range<u64>>>> = Vec::new();
+    let mut processed_maps: Vec<Vec<(Range<u64>, Range<u64>)>> = Vec::new();
     for map in maps {
         let mut processed_map = Vec::new();
         for line in map {
@@ -62,7 +62,7 @@ fn lowest_seed_location_part1(input: impl AsRef<Path>) -> u64 {
 
             let source_range = source_start..source_start + range_length;
             let destination_range = destination_start..destination_start + range_length;
-            processed_map.push(vec![source_range, destination_range]);
+            processed_map.push((source_range, destination_range));
         }
         processed_maps.push(processed_map);
     }
@@ -72,8 +72,7 @@ fn lowest_seed_location_part1(input: impl AsRef<Path>) -> u64 {
         let mut current_number = seed;
         for map in &processed_maps {
             for m in map {
-                let source = m.first().unwrap();
-                let destination = m.last().unwrap();
+                let (source, destination) = m;
                 if source.contains(&current_number) {
                     current_number = (current_number - source.start) + destination.start;
                     break;
@@ -97,7 +96,7 @@ fn lowest_seed_location_part2(input: impl AsRef<Path>) -> u64 {
         seed_ranges.push(start..start + length);
     }
 
-    let mut processed_maps: Vec<Vec<Vec<Range<u64>>>> = Vec::new();
+    let mut processed_maps: Vec<Vec<(Range<u64>, Range<u64>)>> = Vec::new();
     for map in maps.iter().rev() {
         let mut processed_map = Vec::new();
         for line in map.iter().rev() {
@@ -107,7 +106,7 @@ fn lowest_seed_location_part2(input: impl AsRef<Path>) -> u64 {
 
             let source_range = source_start..source_start + range_length;
             let destination_range = destination_start..destination_start + range_length;
-            processed_map.push(vec![destination_range, source_range]);
+            processed_map.push((destination_range, source_range));
         }
         processed_maps.push(processed_map);
     }
@@ -116,8 +115,7 @@ fn lowest_seed_location_part2(input: impl AsRef<Path>) -> u64 {
         let mut current_number = location;
         for map in &processed_maps {
             for m in map {
-                let source = m.first().unwrap();
-                let destination = m.last().unwrap();
+                let (source, destination) = m;
                 if source.contains(&current_number) {
                     current_number = (current_number - source.start) + destination.start;
                     break;
