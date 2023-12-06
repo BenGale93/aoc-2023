@@ -35,10 +35,32 @@ fn parse_line_part2(puzzle_line: &str) -> u64 {
 }
 
 fn number_winning_times(time: u64, distance: u64) -> u64 {
-    (1..time)
-        .map(|held| (time - held) * held)
-        .filter(|d| d > &distance)
-        .count() as u64
+    let time = time as f64;
+    let distance = distance as f64;
+
+    let discriminant = (time.powf(2.0) - 4.0 * distance).sqrt();
+
+    let lower = (-time + discriminant) / (-2.0);
+    let lower_ceiling = lower.ceil();
+
+    // Need to account for draws
+    let lower = if lower == lower_ceiling {
+        lower_ceiling + 1.0
+    } else {
+        lower_ceiling
+    };
+
+    let upper = (-time - discriminant) / -2.0;
+    let upper_floor = upper.floor();
+
+    // Need to account for draws
+    let upper = if upper == upper_floor {
+        upper_floor - 1.0
+    } else {
+        upper_floor
+    };
+
+    (upper - lower + 1.0) as u64
 }
 
 fn race_records(input: impl AsRef<Path>) -> u64 {
