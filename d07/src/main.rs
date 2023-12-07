@@ -1,21 +1,16 @@
 use std::{cmp::Ordering, path::Path, str::FromStr};
 
-use aoc_utils::{get_entire_puzzle, Cli};
+use aoc_utils::get_entire_puzzle;
 use counter::Counter;
 
 fn main() {
-    let part_two = Cli::parse_args().part_two;
-
-    if part_two {
-        todo!()
-    } else {
-        let result = total_winnings("input");
-        println!("Total winnings are: {result}");
-    }
+    let result = total_winnings("input");
+    println!("Total winnings are: {result}");
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Card {
+    Joker,
     Two,
     Three,
     Four,
@@ -25,7 +20,6 @@ enum Card {
     Eight,
     Nine,
     Ten,
-    Jack,
     Queen,
     King,
     Ace,
@@ -36,6 +30,7 @@ impl FromStr for Card {
 
     fn from_str(input: &str) -> Result<Card, Self::Err> {
         match input {
+            "J" => Ok(Self::Joker),
             "2" => Ok(Self::Two),
             "3" => Ok(Self::Three),
             "4" => Ok(Self::Four),
@@ -45,7 +40,6 @@ impl FromStr for Card {
             "8" => Ok(Self::Eight),
             "9" => Ok(Self::Nine),
             "T" => Ok(Self::Ten),
-            "J" => Ok(Self::Jack),
             "Q" => Ok(Self::Queen),
             "K" => Ok(Self::King),
             "A" => Ok(Self::Ace),
@@ -92,11 +86,19 @@ enum HandType {
 
 impl HandType {
     fn from_cards(cards: &Cards) -> Self {
-        let counts = cards.0.iter().collect::<Counter<_>>().most_common();
+        let mut counter = cards.0.iter().collect::<Counter<_>>();
+
+        let jokers = counter.remove(&Card::Joker).unwrap_or(0);
+
+        let mut counts = counter.most_common();
+
+        if let Some((_, n)) = counts.get_mut(0) {
+            *n += jokers;
+        }
 
         let unique_cards = counts.len();
 
-        if unique_cards == 1 {
+        if unique_cards == 1 || unique_cards == 0 {
             Self::FiveKind
         } else if unique_cards == 5 {
             return Self::High;
@@ -197,13 +199,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn part_one() {
-        let result = total_winnings("test_part1");
-        assert_eq!(result, 6440);
-    }
-
-    #[test]
     fn part_two() {
-        assert!(true)
+        let result = total_winnings("test_part1");
+        assert_eq!(result, 5905);
     }
 }
