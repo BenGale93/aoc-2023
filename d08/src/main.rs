@@ -1,16 +1,17 @@
 use std::{collections::HashMap, path::Path};
 
 use aoc_utils::{get_entire_puzzle, Cli};
+use num::integer::lcm;
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
 
-    if part_two {
-        todo!();
+    let result = if part_two {
+        simultaneous_step_count("input")
     } else {
-        let result = step_count("input");
-        println!("Step count: {result}");
+        step_count("input")
     };
+    println!("Step count: {result}");
 }
 
 fn step_count(input: impl AsRef<Path>) -> usize {
@@ -31,6 +32,39 @@ fn step_count(input: impl AsRef<Path>) -> usize {
         steps += 1;
     }
     usize::MAX
+}
+
+fn simultaneous_step_count(input: impl AsRef<Path>) -> usize {
+    let (instructions, network) = parse_puzzle(input);
+
+    let mut elements: Vec<(&String, Option<usize>)> = network
+        .keys()
+        .filter(|k| k.ends_with('A'))
+        .map(|k| (k, None))
+        .collect();
+
+    let mut steps: usize = 1;
+    for i in instructions.into_iter().cycle() {
+        for element in &mut elements {
+            if element.1.is_some() {
+                continue;
+            }
+            let values = network.get(element.0).unwrap();
+            let next_element = if i { &values.0 } else { &values.1 };
+            let z = if next_element.ends_with('Z') {
+                Some(steps)
+            } else {
+                None
+            };
+            *element = (next_element, z);
+        }
+        if elements.iter().filter(|e| e.1.is_some()).count() == elements.len() {
+            break;
+        }
+        steps += 1;
+    }
+
+    elements.iter().map(|e| e.1.unwrap()).reduce(lcm).unwrap()
 }
 
 fn parse_puzzle(input: impl AsRef<Path>) -> (Vec<bool>, HashMap<String, (String, String)>) {
@@ -80,6 +114,7 @@ mod tests {
 
     #[test]
     fn part_two() {
-        assert!(true);
+        let result = simultaneous_step_count("test_part2");
+        assert_eq!(result, 6);
     }
 }
