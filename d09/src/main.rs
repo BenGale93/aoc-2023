@@ -47,10 +47,8 @@ fn next_value(line: &[isize]) -> isize {
     let mut lasts = vec![*line.last().unwrap()];
     let mut current_line = line.to_vec();
     while current_line.iter().map_windows(|&[a, b]| a != b).any(|x| x) {
-        let new_line: Vec<_> = current_line.iter().map_windows(|&[a, b]| b - a).collect();
-        let new_last = *new_line.last().unwrap();
-        lasts.push(new_last);
-        current_line = new_line;
+        current_line = current_line.iter().map_windows(|&[a, b]| b - a).collect();
+        lasts.push(*current_line.last().unwrap());
     }
     lasts.into_iter().sum()
 }
