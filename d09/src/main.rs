@@ -8,7 +8,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        oasis_sum_reverse("input")
     } else {
         oasis_sum("input")
     };
@@ -22,6 +22,22 @@ fn oasis_sum(input: impl AsRef<Path>) -> isize {
             l.split_ascii_whitespace()
                 .map(|n| n.parse().unwrap())
                 .collect::<Vec<isize>>()
+        })
+        .map(|l| next_value(&l))
+        .sum()
+}
+
+fn oasis_sum_reverse(input: impl AsRef<Path>) -> isize {
+    get_entire_puzzle(input)
+        .par_iter()
+        .map(|l| {
+            l.split_ascii_whitespace()
+                .map(|n| n.parse().unwrap())
+                .collect::<Vec<isize>>()
+        })
+        .map(|mut l| {
+            l.reverse();
+            l
         })
         .map(|l| next_value(&l))
         .sum()
@@ -50,6 +66,7 @@ mod tests {
 
     #[test]
     fn part_two() {
-        assert!(true);
+        let result = oasis_sum_reverse("test_part1");
+        assert_eq!(result, 2);
     }
 }
