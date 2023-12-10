@@ -22,9 +22,9 @@ fn step_count(input: impl AsRef<Path>) -> usize {
     for i in instructions.iter().cycle() {
         let values = network.get(&element).unwrap();
         element = if *i {
-            values.0.to_owned()
+            values.0.clone()
         } else {
-            values.1.to_owned()
+            values.1.clone()
         };
         if element == "ZZZ" {
             return steps;
@@ -88,10 +88,10 @@ fn parse_puzzle(input: impl AsRef<Path>) -> (Vec<bool>, HashMap<String, (String,
             .split(", ")
             .collect();
         let values = (
-            values.first().unwrap().to_string(),
-            values.last().unwrap().to_string(),
+            (*values.first().unwrap()).to_string(),
+            (*values.last().unwrap()).to_string(),
         );
-        network.insert(key.to_string(), values);
+        network.insert((*key).to_string(), values);
     }
 
     (instructions, network)

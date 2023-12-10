@@ -28,7 +28,7 @@ enum Card {
 impl FromStr for Card {
     type Err = ();
 
-    fn from_str(input: &str) -> Result<Card, Self::Err> {
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         match input {
             "J" => Ok(Self::Joker),
             "2" => Ok(Self::Two),
@@ -56,12 +56,11 @@ impl Ord for Cards {
         for (card, other_card) in self.0.iter().zip(&other.0) {
             if card == other_card {
                 continue;
-            } else {
-                match card < other_card {
-                    true => return Ordering::Less,
-                    false => return Ordering::Greater,
-                }
             }
+            if card < other_card {
+                return Ordering::Less;
+            }
+            return Ordering::Greater;
         }
         Ordering::Equal
     }
@@ -107,9 +106,8 @@ impl HandType {
         } else if unique_cards == 2 {
             if counts.first().unwrap().1 == 4 {
                 return Self::FourKind;
-            } else {
-                return Self::FullHouse;
             }
+            return Self::FullHouse;
         } else if counts.first().unwrap().1 == 3 {
             return Self::ThreeKind;
         } else {
@@ -154,7 +152,7 @@ impl Eq for Hand {}
 impl FromStr for Hand {
     type Err = ();
 
-    fn from_str(input: &str) -> Result<Hand, Self::Err> {
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         let split_input: Vec<&str> = input.split_ascii_whitespace().collect();
 
         let cards = split_input.first().unwrap();
