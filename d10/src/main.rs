@@ -6,14 +6,14 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        loop_area("input")
     } else {
         loop_steps("input")
     };
     println!("Puzzle result: {result}");
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum Pipe {
     NorthSouth,
     EastWest,
@@ -43,7 +43,7 @@ impl Pipe {
 
 type Coords = (isize, isize);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct Cell {
     pipe: Pipe,
     coords: Coords,
@@ -82,7 +82,7 @@ impl Cell {
         Some(d)
     }
 
-    fn next_pipe(&self, current_coord: Coords) -> Coords {
+    fn next_pipe(&self, current_coord: &Coords) -> Coords {
         let options = match self.next_coords() {
             Some(o) => o,
             None => {
@@ -90,7 +90,7 @@ impl Cell {
                 panic!("Expected a direction");
             }
         };
-        if options.0 == current_coord {
+        if options.0 == *current_coord {
             options.1
         } else {
             options.0
@@ -103,8 +103,50 @@ type Map = Vec<Vec<Cell>>;
 fn loop_steps(input: impl AsRef<Path>) -> usize {
     let puzzle = get_entire_puzzle(input);
 
-    let map: Map = puzzle
-        .into_iter()
+    let map = create_map(&puzzle);
+
+    let start = find_start(&map);
+
+    let loop_spec = loop_cells(&map, &start);
+
+    loop_spec.len() / 2
+}
+
+fn loop_area(input: impl AsRef<Path>) -> usize {
+    let puzzle = get_entire_puzzle(input);
+
+    let mut map = create_map(&puzzle);
+
+    let start = find_start(&map);
+
+    let loop_spec = loop_cells(&map, &start);
+
+    map[start.0 as usize][start.1 as usize] = *loop_spec.first().unwrap();
+
+    let mut inside_loop = false;
+    let mut area = 0;
+
+    for row in &map {
+        for cell in row {
+            let is_loop_cell = loop_spec.contains(cell);
+            if is_loop_cell
+                && (matches!(cell.pipe, Pipe::NorthEast)
+                    || matches!(cell.pipe, Pipe::NorthSouth)
+                    || matches!(cell.pipe, Pipe::NorthWest))
+            {
+                inside_loop = !inside_loop;
+            }
+            if inside_loop && !is_loop_cell {
+                area += 1;
+            }
+        }
+    }
+    area
+}
+
+fn create_map(puzzle: &[String]) -> Map {
+    puzzle
+        .iter()
         .enumerate()
         .map(|(i, l)| {
             l.chars()
@@ -115,24 +157,7 @@ fn loop_steps(input: impl AsRef<Path>) -> usize {
                 })
                 .collect()
         })
-        .collect();
-
-    let start = find_start(&map);
-
-    let (mut dir_a, mut dir_b) = starting_directions(&map, &start);
-    let (mut incoming_a, mut incoming_b) = (start, start);
-    let mut steps = 1;
-    while dir_a != dir_b {
-        let cell_a = map[dir_a.0 as usize][dir_a.1 as usize];
-        dir_a = cell_a.next_pipe(incoming_a);
-        incoming_a = cell_a.coords;
-        let cell_b = map[dir_b.0 as usize][dir_b.1 as usize];
-        dir_b = cell_b.next_pipe(incoming_b);
-        incoming_b = cell_b.coords;
-        steps += 1;
-    }
-
-    steps
+        .collect()
 }
 
 fn find_start(map: &Map) -> Coords {
@@ -146,9 +171,10 @@ fn find_start(map: &Map) -> Coords {
     panic!("Could not find start");
 }
 
-fn starting_directions(map: &Map, starting_coords: &Coords) -> (Coords, Coords) {
+fn starting_directions(map: &Map, starting_coords: &Coords) -> (Coords, Coords, Pipe) {
     let lookup = vec![(-1, 0), (0, 1), (1, 0), (0, -1)];
     let mut matches = vec![];
+    let mut matching_lookups = vec![];
     for l in lookup {
         let new_coords = (starting_coords.0 + l.0, starting_coords.1 + l.1);
         let row = match map.get(new_coords.0 as usize) {
@@ -165,18 +191,69 @@ fn starting_directions(map: &Map, starting_coords: &Coords) -> (Coords, Coords) 
                 || next_cells.unwrap().1 == *starting_coords)
         {
             matches.push(cell.coords);
+            matching_lookups.push(l);
         }
     }
 
-    (*matches.first().unwrap(), *matches.last().unwrap())
+    let pipe = match (
+        matching_lookups.first().unwrap(),
+        matching_lookups.last().unwrap(),
+    ) {
+        ((-1, 0), (0, 1)) => Pipe::NorthEast,
+        ((-1, 0), (1, 0)) => Pipe::NorthSouth,
+        ((-1, 0), (0, -1)) => Pipe::NorthWest,
+        ((0, 1), (1, 0)) => Pipe::SouthEast,
+        ((0, 1), (0, -1)) => Pipe::EastWest,
+        ((1, 0), (0, -1)) => Pipe::SouthWest,
+        _ => panic!("Unexpected pipe config"),
+    };
+
+    (*matches.first().unwrap(), *matches.last().unwrap(), pipe)
+}
+
+fn loop_cells(map: &Map, start: &Coords) -> Vec<Cell> {
+    let (mut dir_a, mut dir_b, pipe) = starting_directions(map, start);
+    let start_cell = Cell {
+        pipe,
+        coords: *start,
+    };
+    let mut section_a = vec![start_cell];
+    let mut section_b = vec![start_cell];
+    while dir_a != dir_b {
+        let cell_a = map[dir_a.0 as usize][dir_a.1 as usize];
+        dir_a = cell_a.next_pipe(&section_a.last().unwrap().coords);
+        section_a.push(cell_a);
+
+        let cell_b = map[dir_b.0 as usize][dir_b.1 as usize];
+        dir_b = cell_b.next_pipe(&section_b.last().unwrap().coords);
+        section_b.push(cell_b);
+    }
+    section_a.push(map[dir_a.0 as usize][dir_a.1 as usize]);
+    section_b.reverse();
+    section_b.pop();
+    section_a.extend(section_b);
+    section_a
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn part_one() {
         let result = loop_steps("test_part1");
         assert_eq!(result, 8);
+    }
+
+    #[test]
+    fn part_two_one() {
+        let result = loop_area("test1_part2");
+        assert_eq!(result, 8);
+    }
+
+    #[test]
+    fn part_two_two() {
+        let result = loop_area("test2_part2");
+        assert_eq!(result, 10);
     }
 }
