@@ -8,16 +8,16 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        galaxy_distance_sum("input", 1000000)
     } else {
-        galaxy_distance_sum("input")
+        galaxy_distance_sum("input", 2)
     };
     println!("Puzzle result: {result}");
 }
 
 type Universe = Vec<Vec<char>>;
 
-fn galaxy_distance_sum(input: impl AsRef<Path>) -> usize {
+fn galaxy_distance_sum(input: impl AsRef<Path>, expansion: usize) -> usize {
     let universe: Universe = puzzle_input_lines(input)
         .map(Result::unwrap)
         .map(|c| c.chars().collect())
@@ -25,7 +25,7 @@ fn galaxy_distance_sum(input: impl AsRef<Path>) -> usize {
     let (empty_rows, empty_columns) = empty_rows_and_columns(&universe);
 
     let mut galaxies = get_galaxies(&universe);
-    expand_galaxies(&mut galaxies, &empty_rows, &empty_columns);
+    expand_galaxies(&mut galaxies, &empty_rows, &empty_columns, expansion);
     galaxies
         .iter()
         .combinations(2)
@@ -72,12 +72,21 @@ fn get_galaxies(universe: &Universe) -> Vec<Coord> {
     galaxies
 }
 
-fn expand_galaxies(galaxies: &mut [Coord], empty_rows: &[usize], empty_columns: &[usize]) {
+fn expand_galaxies(
+    galaxies: &mut [Coord],
+    empty_rows: &[usize],
+    empty_columns: &[usize],
+    expansion: usize,
+) {
+    let expansion = expansion - 1;
     for galaxy in galaxies.iter_mut() {
         let new_rows = empty_rows.iter().filter(|x| **x < galaxy.0).count();
         let new_columns = empty_columns.iter().filter(|x| **x < galaxy.1).count();
 
-        *galaxy = (galaxy.0 + new_rows, galaxy.1 + new_columns);
+        *galaxy = (
+            galaxy.0 + (new_rows * expansion),
+            galaxy.1 + (new_columns * expansion),
+        );
     }
 }
 
@@ -94,7 +103,19 @@ mod tests {
 
     #[test]
     fn part_one() {
-        let result = galaxy_distance_sum("test_part1");
+        let result = galaxy_distance_sum("test_part1", 2);
         assert_eq!(result, 374);
+    }
+
+    #[test]
+    fn part_two_one() {
+        let result = galaxy_distance_sum("test_part1", 10);
+        assert_eq!(result, 1030);
+    }
+
+    #[test]
+    fn part_two_two() {
+        let result = galaxy_distance_sum("test_part1", 100);
+        assert_eq!(result, 8410);
     }
 }
