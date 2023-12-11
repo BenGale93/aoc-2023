@@ -26,7 +26,7 @@ enum Pipe {
 }
 
 impl Pipe {
-    fn from_char(input: &char) -> Self {
+    fn from_char(input: char) -> Self {
         match input {
             '|' => Self::NorthSouth,
             '-' => Self::EastWest,
@@ -50,7 +50,7 @@ struct Cell {
 }
 
 impl Cell {
-    fn next_coords(&self) -> Option<(Coords, Coords)> {
+    const fn next_coords(&self) -> Option<(Coords, Coords)> {
         let d = match self.pipe {
             Pipe::NorthSouth => (
                 (self.coords.0 - 1, self.coords.1),
@@ -76,20 +76,15 @@ impl Cell {
                 (self.coords.0, self.coords.1 + 1),
                 (self.coords.0 + 1, self.coords.1),
             ),
-            Pipe::Ground => return None,
-            Pipe::Start => return None,
+            Pipe::Ground | Pipe::Start => return None,
         };
         Some(d)
     }
 
     fn next_pipe(&self, current_coord: &Coords) -> Coords {
-        let options = match self.next_coords() {
-            Some(o) => o,
-            None => {
-                println!("{current_coord:?}");
-                panic!("Expected a direction");
-            }
-        };
+        let options = self
+            .next_coords()
+            .map_or_else(|| panic!("Expected a direction {current_coord:?}"), |o| o);
         if options.0 == *current_coord {
             options.1
         } else {
@@ -152,7 +147,7 @@ fn create_map(puzzle: &[String]) -> Map {
             l.chars()
                 .enumerate()
                 .map(|(j, c)| Cell {
-                    pipe: Pipe::from_char(&c),
+                    pipe: Pipe::from_char(c),
                     coords: (i as isize, j as isize),
                 })
                 .collect()
@@ -177,13 +172,11 @@ fn starting_directions(map: &Map, starting_coords: &Coords) -> (Coords, Coords, 
     let mut matching_lookups = vec![];
     for l in lookup {
         let new_coords = (starting_coords.0 + l.0, starting_coords.1 + l.1);
-        let row = match map.get(new_coords.0 as usize) {
-            Some(c) => c,
-            None => continue,
+        let Some(row) = map.get(new_coords.0 as usize) else {
+            continue;
         };
-        let cell = match row.get(new_coords.1 as usize) {
-            Some(c) => c,
-            None => continue,
+        let Some(cell) = row.get(new_coords.1 as usize) else {
+            continue;
         };
         let next_cells = cell.next_coords();
         if next_cells.is_some()
