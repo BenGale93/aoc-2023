@@ -35,7 +35,7 @@ enum Terrain {
 }
 
 impl Terrain {
-    fn from_char(c: &char) -> Self {
+    fn from_char(c: char) -> Self {
         match c {
             '#' => Self::Rocks,
             '.' => Self::Ash,
@@ -43,7 +43,7 @@ impl Terrain {
         }
     }
 
-    fn other(&self) -> Self {
+    const fn other(self) -> Self {
         match self {
             Self::Ash => Self::Rocks,
             Self::Rocks => Self::Ash,
@@ -55,13 +55,12 @@ type TerrainPattern = Vec<Vec<Terrain>>;
 
 fn parse_puzzle(input: &str) -> Vec<TerrainPattern> {
     let input = input.strip_suffix('\n').unwrap();
-    let patterns: Vec<&str> = input.split("\n\n").collect();
 
-    patterns
-        .into_iter()
+    input
+        .split("\n\n")
         .map(|p| {
             p.split('\n')
-                .map(|l| l.chars().map(|c| Terrain::from_char(&c)).collect())
+                .map(|l| l.chars().map(Terrain::from_char).collect())
                 .collect()
         })
         .collect()
@@ -81,15 +80,14 @@ fn find_reflections(pattern: &TerrainPattern) -> usize {
 
 fn find_smudged_reflections(pattern: &TerrainPattern) -> usize {
     let row_reflection = find_reflection(pattern, 100, None);
-    let transpose_pattern = transpose(pattern);
+    let mut transpose_pattern = transpose(pattern);
     let column_reflection = find_reflection(&transpose_pattern, 1, None);
 
     let mut smudge_pattern = pattern.clone();
     let new_row_reflection = find_smudged_reflection(&mut smudge_pattern, 100, row_reflection);
 
-    let mut transposed_smudge_pattern = transpose_pattern.clone();
     let new_column_reflection =
-        find_smudged_reflection(&mut transposed_smudge_pattern, 1, column_reflection);
+        find_smudged_reflection(&mut transpose_pattern, 1, column_reflection);
 
     match (new_row_reflection, new_column_reflection) {
         (Some(r), None) => r,
@@ -143,9 +141,9 @@ fn find_reflection(
 
 fn transpose(pattern: &TerrainPattern) -> TerrainPattern {
     let mut transpose_pattern = vec![vec![]; pattern[0].len()];
-    for i in 0..pattern.len() {
-        for j in 0..pattern[0].len() {
-            transpose_pattern[j].push(pattern[i][j]);
+    for row in pattern {
+        for (j, value) in row.iter().enumerate() {
+            transpose_pattern[j].push(*value);
         }
     }
 
