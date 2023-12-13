@@ -7,7 +7,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        spring_puzzle_sum_part2("input")
     } else {
         spring_puzzle_sum("input")
     };
@@ -19,6 +19,20 @@ fn spring_puzzle_sum(input: impl AsRef<Path>) -> usize {
         .map(Result::unwrap)
         .map(|s| SpringRecord::from_str(&s))
         .map(Result::unwrap)
+        .collect();
+
+    let combinations: Vec<usize> = spring_records
+        .into_iter()
+        .map(|s| count_combinations(s.row, s.groups))
+        .collect();
+
+    combinations.iter().sum()
+}
+
+fn spring_puzzle_sum_part2(input: impl AsRef<Path>) -> usize {
+    let spring_records: Vec<SpringRecord> = puzzle_input_lines(input)
+        .map(Result::unwrap)
+        .map(|s| SpringRecord::from_str_part_2(&s))
         .collect();
 
     let combinations: Vec<usize> = spring_records
@@ -75,6 +89,23 @@ impl FromStr for SpringRecord {
             .collect();
 
         Ok(Self { row, groups })
+    }
+}
+
+impl SpringRecord {
+    fn from_str_part_2(s: &str) -> Self {
+        let line_split: Vec<&str> = s.split(' ').collect();
+
+        let springs = *line_split.first().unwrap();
+        let springs = [springs; 5].join("?");
+
+        let groupings = *line_split.last().unwrap();
+        let groupings = [groupings; 5].join(",");
+
+        let row: Vec<Spring> = springs.chars().map(Spring::from_char).collect();
+        let groups: Vec<usize> = groupings.split(',').map(|n| n.parse().unwrap()).collect();
+
+        Self { row, groups }
     }
 }
 
@@ -142,6 +173,12 @@ mod tests {
     fn part_one() {
         let result = spring_puzzle_sum("test_part1");
         assert_eq!(result, 21);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = spring_puzzle_sum_part2("test_part1");
+        assert_eq!(result, 525152);
     }
 
     #[rstest]
