@@ -15,32 +15,20 @@ fn main() {
 }
 
 fn spring_puzzle_sum(input: impl AsRef<Path>) -> usize {
-    let spring_records: Vec<SpringRecord> = puzzle_input_lines(input)
+    puzzle_input_lines(input)
         .map(Result::unwrap)
         .map(|s| SpringRecord::from_str(&s))
         .map(Result::unwrap)
-        .collect();
-
-    let combinations: Vec<usize> = spring_records
-        .into_iter()
         .map(|s| count_combinations(s.row, s.groups))
-        .collect();
-
-    combinations.iter().sum()
+        .sum()
 }
 
 fn spring_puzzle_sum_part2(input: impl AsRef<Path>) -> usize {
-    let spring_records: Vec<SpringRecord> = puzzle_input_lines(input)
+    puzzle_input_lines(input)
         .map(Result::unwrap)
         .map(|s| SpringRecord::from_str_part_2(&s))
-        .collect();
-
-    let combinations: Vec<usize> = spring_records
-        .into_iter()
         .map(|s| count_combinations(s.row, s.groups))
-        .collect();
-
-    combinations.iter().sum()
+        .sum()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -124,9 +112,9 @@ fn count_combinations(springs: Vec<Spring>, groups: Vec<usize>) -> usize {
     if matches!(front_spring, Spring::Ok) {
         count_combinations(springs[1..spring_length].to_vec(), groups)
     } else if matches!(front_spring, Spring::Unknown) {
-        let mut broken = springs.to_vec();
+        let mut broken = springs.clone();
         broken[0] = Spring::Bad;
-        let mut fixed = springs.to_vec();
+        let mut fixed = springs;
         fixed[0] = Spring::Ok;
         let total_broken = count_combinations(broken, groups.clone());
         let total_fixed = count_combinations(fixed, groups);
@@ -148,14 +136,15 @@ fn count_combinations(springs: Vec<Spring>, groups: Vec<usize>) -> usize {
         let total = if next_springs.is_empty() || next_groups.is_empty() {
             count_combinations(next_springs, next_groups)
         } else {
-            match next_springs[0] {
-                Spring::Bad => 0,
-                Spring::Ok => count_combinations(next_springs, next_groups),
-                Spring::Unknown => {
-                    let mut fixed = next_springs.to_vec();
+            match next_springs.first() {
+                Some(Spring::Bad) => 0,
+                Some(Spring::Ok) => count_combinations(next_springs, next_groups),
+                Some(Spring::Unknown) => {
+                    let mut fixed = next_springs.clone();
                     fixed[0] = Spring::Ok;
                     count_combinations(fixed, next_groups)
                 }
+                None => panic!("Expected next_springs not to be empty"),
             }
         };
 
