@@ -6,7 +6,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        total_beam_load_spin_cycle("input")
     } else {
         total_beam_load("input")
     };
@@ -16,9 +16,24 @@ fn main() {
 fn total_beam_load(input: impl AsRef<Path>) -> usize {
     let input = read_to_string(input).unwrap();
     let platform = parse_puzzle(&input);
-    let transpose_puzzle = transpose(&platform);
-    let titled_platform = tilt_platform(&transpose_puzzle);
+    let rotated_platform = rotate_counter_clockwise(&platform);
+    let titled_platform = tilt_platform(&rotated_platform);
     load_sum(&titled_platform)
+}
+
+fn total_beam_load_spin_cycle(input: impl AsRef<Path>) -> usize {
+    let input = read_to_string(input).unwrap();
+    let mut platform = rotate_counter_clockwise(&parse_puzzle(&input));
+    let mut load_sums = vec![];
+    for i in 0..1000 {
+        for j in 0..4 {
+            platform = tilt_platform(&platform);
+            platform = rotate_clockwise(&platform);
+        }
+        load_sums.push(load_sum(&platform));
+    }
+
+    *load_sums.last().unwrap_or(&0)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -51,15 +66,27 @@ fn parse_puzzle(input: &str) -> Platform {
         .collect()
 }
 
-fn transpose(platform: &Platform) -> Platform {
-    let mut transpose_platform = vec![vec![]; platform[0].len()];
+fn rotate_counter_clockwise(platform: &Platform) -> Platform {
+    let mut new_platform = vec![vec![]; platform[0].len()];
+    let platform_length = platform.len();
     for row in platform {
         for (j, value) in row.iter().enumerate() {
-            transpose_platform[j].push(*value);
+            new_platform[platform_length - j - 1].push(*value);
         }
     }
 
-    transpose_platform
+    new_platform
+}
+
+fn rotate_clockwise(platform: &Platform) -> Platform {
+    let mut new_platform = vec![vec![]; platform[0].len()];
+    for row in platform.iter().rev() {
+        for (j, value) in row.iter().enumerate() {
+            new_platform[j].push(*value);
+        }
+    }
+
+    new_platform
 }
 
 fn tilt_platform(platform: &Platform) -> Platform {
@@ -123,5 +150,11 @@ mod tests {
     fn part_one() {
         let result = total_beam_load("test_part1");
         assert_eq!(result, 136);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = total_beam_load_spin_cycle("test_part1");
+        assert_eq!(result, 64);
     }
 }
