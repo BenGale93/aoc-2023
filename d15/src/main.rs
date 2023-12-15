@@ -42,7 +42,7 @@ fn focusing_power(input: impl AsRef<Path>) -> usize {
 
 fn parse_puzzle(input: impl AsRef<Path>) -> Vec<String> {
     let input = read_to_string(input).unwrap();
-    input.trim().split(',').map(|s| s.to_string()).collect()
+    input.trim().split(',').map(ToString::to_string).collect()
 }
 
 #[derive(Debug, Clone)]
@@ -71,7 +71,7 @@ impl HolidayMap {
             let instruction: Vec<_> = instruction.split('=').collect();
             let label = instruction.first().unwrap();
             let focal = instruction.last().unwrap().parse().unwrap();
-            self.add(label.to_string(), focal);
+            self.add((*label).to_string(), focal);
         }
     }
 
