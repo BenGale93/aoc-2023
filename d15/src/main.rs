@@ -131,4 +131,10 @@ mod tests {
         let result = simple_hash("rn=1");
         assert_eq!(result, 30);
     }
+
+    #[test]
+    fn part_two() {
+        let result = focusing_power("test_part1");
+        assert_eq!(result, 145);
+    }
 }
