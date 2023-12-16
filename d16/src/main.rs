@@ -121,7 +121,7 @@ impl Tile {
         }
     }
 
-    fn next_beams(&self, beam: &Beam) -> Vec<Beam> {
+    fn next_beams(self, beam: &Beam) -> Vec<Beam> {
         let location = &beam.location;
         let beam_dir = beam.direction;
         match self {
@@ -160,7 +160,7 @@ enum Direction {
 }
 
 impl Direction {
-    fn next_beam(&self, location: &Coord) -> Beam {
+    const fn next_beam(self, location: &Coord) -> Beam {
         let new_location = match self {
             Self::Up => (location.0 - 1, location.1),
             Self::Right => (location.0, location.1 + 1),
@@ -170,11 +170,11 @@ impl Direction {
 
         Beam {
             location: new_location,
-            direction: *self,
+            direction: self,
         }
     }
 
-    fn reflect_right(&self) -> Self {
+    const fn reflect_right(self) -> Self {
         match self {
             Self::Up => Self::Right,
             Self::Right => Self::Up,
@@ -183,7 +183,7 @@ impl Direction {
         }
     }
 
-    fn reflect_left(&self) -> Self {
+    const fn reflect_left(self) -> Self {
         match self {
             Self::Up => Self::Left,
             Self::Right => Self::Down,
@@ -192,17 +192,17 @@ impl Direction {
         }
     }
 
-    fn split_horizontal(&self) -> Vec<Direction> {
+    fn split_horizontal(self) -> Vec<Self> {
         match self {
             Self::Up | Self::Down => vec![Self::Left, Self::Right],
-            Self::Right | Self::Left => vec![*self],
+            Self::Right | Self::Left => vec![self],
         }
     }
 
-    fn split_vertical(&self) -> Vec<Direction> {
+    fn split_vertical(self) -> Vec<Self> {
         match self {
             Self::Left | Self::Right => vec![Self::Up, Self::Down],
-            Self::Up | Self::Down => vec![*self],
+            Self::Up | Self::Down => vec![self],
         }
     }
 }
@@ -216,7 +216,7 @@ fn parse_puzzle(input: &str) -> Contraption {
         .collect()
 }
 
-fn out_of_bounds(coord: &Coord, size: isize) -> bool {
+const fn out_of_bounds(coord: &Coord, size: isize) -> bool {
     coord.0 < 0 || coord.1 < 0 || coord.0 >= size || coord.1 >= size
 }
 
