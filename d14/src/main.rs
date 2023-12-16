@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, path::Path};
 
-use aoc_utils::Cli;
+use aoc_utils::{puzzle_matrix, Cli, FromChar};
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -15,7 +15,7 @@ fn main() {
 
 fn total_beam_load(input: impl AsRef<Path>) -> usize {
     let input = read_to_string(input).unwrap();
-    let platform = parse_puzzle(&input);
+    let platform = puzzle_matrix::<Terrain>(&input);
     let rotated_platform = rotate_counter_clockwise(&platform);
     let titled_platform = tilt_platform(&rotated_platform);
     load_sum(&titled_platform)
@@ -23,10 +23,10 @@ fn total_beam_load(input: impl AsRef<Path>) -> usize {
 
 fn total_beam_load_spin_cycle(input: impl AsRef<Path>) -> usize {
     let input = read_to_string(input).unwrap();
-    let mut platform = rotate_counter_clockwise(&parse_puzzle(&input));
+    let mut platform = rotate_counter_clockwise(&puzzle_matrix::<Terrain>(&input));
     let mut load_sums = vec![];
-    for i in 0..1000 {
-        for j in 0..4 {
+    for _ in 0..1000 {
+        for _ in 0..4 {
             platform = tilt_platform(&platform);
             platform = rotate_clockwise(&platform);
         }
@@ -43,7 +43,7 @@ enum Terrain {
     Ground,
 }
 
-impl Terrain {
+impl FromChar for Terrain {
     fn from_char(c: char) -> Self {
         match c {
             'O' => Self::Round,
@@ -56,15 +56,6 @@ impl Terrain {
 
 type Row = Vec<Terrain>;
 type Platform = Vec<Vec<Terrain>>;
-
-fn parse_puzzle(input: &str) -> Platform {
-    let input = input.strip_suffix('\n').unwrap();
-
-    input
-        .split('\n')
-        .map(|p| p.chars().map(Terrain::from_char).collect())
-        .collect()
-}
 
 fn rotate_counter_clockwise(platform: &Platform) -> Platform {
     let mut new_platform = vec![vec![]; platform[0].len()];

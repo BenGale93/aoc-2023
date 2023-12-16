@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use aoc_utils::Cli;
+use aoc_utils::{puzzle_matrix, Cli, FromChar};
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn energized_tiles(input: impl AsRef<Path>) -> usize {
-    let contraption = parse_puzzle(&read_to_string(input).unwrap());
+    let contraption = puzzle_matrix::<Tile>(&read_to_string(input).unwrap());
     let start_beam = Beam {
         location: (0, 0),
         direction: Direction::Right,
@@ -27,7 +27,7 @@ fn energized_tiles(input: impl AsRef<Path>) -> usize {
 }
 
 fn energized_tiles_maximum(input: impl AsRef<Path>) -> usize {
-    let contraption = parse_puzzle(&read_to_string(input).unwrap());
+    let contraption = puzzle_matrix::<Tile>(&read_to_string(input).unwrap());
     create_beams(contraption.len())
         .iter()
         .map(|b| fire_beam(&contraption, *b))
@@ -109,7 +109,7 @@ enum Tile {
     VerticalSplitter,
 }
 
-impl Tile {
+impl FromChar for Tile {
     fn from_char(c: char) -> Self {
         match c {
             '.' => Self::Empty,
@@ -120,7 +120,9 @@ impl Tile {
             _ => panic!("Unrecognised pattern."),
         }
     }
+}
 
+impl Tile {
     fn next_beams(self, beam: &Beam) -> Vec<Beam> {
         let location = &beam.location;
         let beam_dir = beam.direction;
@@ -205,15 +207,6 @@ impl Direction {
             Self::Up | Self::Down => vec![self],
         }
     }
-}
-
-fn parse_puzzle(input: &str) -> Contraption {
-    let input = input.strip_suffix('\n').unwrap();
-
-    input
-        .split('\n')
-        .map(|r| r.chars().map(Tile::from_char).collect())
-        .collect()
 }
 
 const fn out_of_bounds(coord: &Coord, size: isize) -> bool {

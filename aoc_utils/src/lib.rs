@@ -37,3 +37,23 @@ pub fn get_entire_puzzle(filename: impl AsRef<Path>) -> Vec<String> {
         .map(|l| l.expect("Could not parse line"))
         .collect()
 }
+
+pub trait FromChar {
+    fn from_char(c: char) -> Self;
+}
+
+/// Parses the puzzle input as a matrix of type T.
+///
+/// Type T is usually an enum and implements FromChar which
+/// takes each character in the input and maps it to an enum variant.
+///
+/// # Panics
+/// Assumes the puzzle has a blank line at the bottom.
+pub fn puzzle_matrix<T: FromChar>(input: &str) -> Vec<Vec<T>> {
+    let input = input.strip_suffix('\n').unwrap();
+
+    input
+        .split('\n')
+        .map(|p| p.chars().map(T::from_char).collect())
+        .collect()
+}
