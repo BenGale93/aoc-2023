@@ -10,7 +10,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        energized_tiles_maximum("input")
     } else {
         energized_tiles("input")
     };
@@ -19,16 +19,28 @@ fn main() {
 
 fn energized_tiles(input: impl AsRef<Path>) -> usize {
     let contraption = parse_puzzle(&read_to_string(input).unwrap());
+    let start_beam = Beam {
+        location: (0, 0),
+        direction: Direction::Right,
+    };
+    fire_beam(&contraption, start_beam)
+}
+
+fn energized_tiles_maximum(input: impl AsRef<Path>) -> usize {
+    let contraption = parse_puzzle(&read_to_string(input).unwrap());
+    create_beams(contraption.len())
+        .iter()
+        .map(|b| fire_beam(&contraption, *b))
+        .max()
+        .unwrap()
+}
+
+fn fire_beam(contraption: &Contraption, start_beam: Beam) -> usize {
     let size = contraption.len() as isize;
 
     let mut queue = VecDeque::new();
     let mut energized = HashSet::new();
-
-    let root_beam = Beam {
-        location: (0, 0),
-        direction: Direction::Right,
-    };
-    queue.push_back(root_beam);
+    queue.push_back(start_beam);
 
     while !queue.is_empty() {
         let current_beam = queue.pop_front().unwrap();
@@ -50,6 +62,42 @@ fn energized_tiles(input: impl AsRef<Path>) -> usize {
         .map(|b| b.location)
         .collect::<HashSet<_>>()
         .len()
+}
+
+fn create_beams(size: usize) -> Vec<Beam> {
+    let mut top = (0..size)
+        .map(|i| Beam {
+            location: (0, i as isize),
+            direction: Direction::Down,
+        })
+        .collect::<Vec<_>>();
+
+    let left = (0..size)
+        .map(|i| Beam {
+            location: (i as isize, 0),
+            direction: Direction::Right,
+        })
+        .collect::<Vec<_>>();
+
+    let right = (0..size)
+        .map(|i| Beam {
+            location: (i as isize, size as isize),
+            direction: Direction::Left,
+        })
+        .collect::<Vec<_>>();
+
+    let bottom = (0..size)
+        .map(|i| Beam {
+            location: (size as isize, i as isize),
+            direction: Direction::Up,
+        })
+        .collect::<Vec<_>>();
+
+    top.extend(left);
+    top.extend(right);
+    top.extend(bottom);
+
+    top
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -180,5 +228,11 @@ mod tests {
     fn part_one() {
         let result = energized_tiles("test_part1");
         assert_eq!(result, 46);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = energized_tiles_maximum("test_part1");
+        assert_eq!(result, 51);
     }
 }
