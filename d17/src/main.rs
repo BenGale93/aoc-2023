@@ -10,15 +10,11 @@ use aoc_utils::Cli;
 fn main() {
     let part_two = Cli::parse_args().part_two;
 
-    let result = if part_two {
-        todo!()
-    } else {
-        minimum_heat_loss("input")
-    };
+    let result = minimum_heat_loss("input", part_two);
     println!("Puzzle result: {result}");
 }
 
-fn minimum_heat_loss(input: impl AsRef<Path>) -> usize {
+fn minimum_heat_loss(input: impl AsRef<Path>, ultra: bool) -> usize {
     let (graph, goal) = parse_puzzle(input);
     let start: Coord = (0, 0);
 
@@ -57,7 +53,7 @@ fn minimum_heat_loss(input: impl AsRef<Path>) -> usize {
             continue;
         }
 
-        for valid_move in valid_moves(&graph, &current_state) {
+        for valid_move in valid_moves(&graph, &current_state, ultra) {
             let next = State {
                 cost: current_state.cost + valid_move.cost,
                 position: valid_move.position,
@@ -75,11 +71,11 @@ fn minimum_heat_loss(input: impl AsRef<Path>) -> usize {
     usize::MAX
 }
 
-fn valid_moves(graph: &HashMap<Coord, usize>, current_state: &State) -> Vec<State> {
+fn valid_moves(graph: &HashMap<Coord, usize>, current_state: &State, ultra: bool) -> Vec<State> {
     let mut valid_moves = vec![];
     for direction in current_state
         .direction
-        .valid_directions(current_state.dir_count)
+        .valid_directions(current_state.dir_count, ultra)
     {
         let next_coord = direction.next_cord(&current_state.position);
         let Some(next_cost) = graph.get(&next_coord) else {
@@ -109,17 +105,26 @@ enum Direction {
 }
 
 impl Direction {
-    fn valid_directions(self, dir_count: usize) -> Vec<Self> {
+    fn valid_directions(self, dir_count: usize, ultra: bool) -> Vec<Self> {
         let mut potential_directions = match self {
             Self::Up => vec![Self::Left, Self::Right, Self::Up],
             Self::Left => vec![Self::Up, Self::Down, Self::Left],
             Self::Right => vec![Self::Up, Self::Down, Self::Right],
             Self::Down => vec![Self::Left, Self::Right, Self::Down],
         };
-        if dir_count >= 3 {
-            potential_directions.pop();
+        if !ultra {
+            if dir_count >= 3 {
+                potential_directions.pop();
+            }
+            potential_directions
+        } else {
+            if dir_count < 4 {
+                return vec![self];
+            } else if dir_count >= 10 {
+                potential_directions.pop();
+            }
+            potential_directions
         }
-        potential_directions
     }
 
     fn next_cord(self, location: &Coord) -> Coord {
@@ -188,13 +193,25 @@ mod tests {
 
     #[test]
     fn part_one() {
-        let result = minimum_heat_loss("test_part1");
+        let result = minimum_heat_loss("test_part1", false);
         assert_eq!(result, 102);
     }
 
     #[test]
     fn short_input() {
-        let result = minimum_heat_loss("short_test");
+        let result = minimum_heat_loss("short_test", false);
         assert_eq!(result, 7);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = minimum_heat_loss("test_part1", true);
+        assert_eq!(result, 94);
+    }
+
+    #[test]
+    fn part_two_short_input() {
+        let result = minimum_heat_loss("test_part2", true);
+        assert_eq!(result, 71);
     }
 }
