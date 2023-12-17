@@ -5,7 +5,7 @@ use std::{
     path::Path,
 };
 
-use aoc_utils::Cli;
+use aoc_utils::{Cli, Coord, Direction};
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -76,10 +76,7 @@ fn minimum_heat_loss(input: impl AsRef<Path>, ultra: bool) -> usize {
 
 fn valid_moves(graph: &HashMap<Coord, usize>, current_state: &State, ultra: bool) -> Vec<State> {
     let mut valid_moves = vec![];
-    for direction in current_state
-        .direction
-        .valid_directions(current_state.dir_count, ultra)
-    {
+    for direction in valid_directions(current_state.direction, current_state.dir_count, ultra) {
         let next_coord = direction.next_coord(&current_state.position);
         let Some(next_cost) = graph.get(&next_coord) else {
             continue;
@@ -99,45 +96,24 @@ fn valid_moves(graph: &HashMap<Coord, usize>, current_state: &State, ultra: bool
     valid_moves
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-impl Direction {
-    fn valid_directions(self, dir_count: usize, ultra: bool) -> Vec<Self> {
-        let mut potential_directions = match self {
-            Self::Up => vec![Self::Left, Self::Right, Self::Up],
-            Self::Left => vec![Self::Up, Self::Down, Self::Left],
-            Self::Right => vec![Self::Up, Self::Down, Self::Right],
-            Self::Down => vec![Self::Left, Self::Right, Self::Down],
-        };
-        if ultra {
-            if dir_count < 4 {
-                return vec![self];
-            } else if dir_count >= 10 {
-                potential_directions.pop();
-            }
-        } else if dir_count >= 3 {
+fn valid_directions(direction: Direction, dir_count: usize, ultra: bool) -> Vec<Direction> {
+    let mut potential_directions = match direction {
+        Direction::Up => vec![Direction::Left, Direction::Right, Direction::Up],
+        Direction::Left => vec![Direction::Up, Direction::Down, Direction::Left],
+        Direction::Right => vec![Direction::Up, Direction::Down, Direction::Right],
+        Direction::Down => vec![Direction::Left, Direction::Right, Direction::Down],
+    };
+    if ultra {
+        if dir_count < 4 {
+            return vec![direction];
+        } else if dir_count >= 10 {
             potential_directions.pop();
         }
-        potential_directions
+    } else if dir_count >= 3 {
+        potential_directions.pop();
     }
-
-    const fn next_coord(self, location: &Coord) -> Coord {
-        match self {
-            Self::Up => (location.0 - 1, location.1),
-            Self::Right => (location.0, location.1 + 1),
-            Self::Down => (location.0 + 1, location.1),
-            Self::Left => (location.0, location.1 - 1),
-        }
-    }
+    potential_directions
 }
-
-type Coord = (isize, isize);
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 struct State {

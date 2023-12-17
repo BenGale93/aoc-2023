@@ -58,3 +58,24 @@ pub fn puzzle_matrix<T: FromChar>(input: &str) -> Vec<Vec<T>> {
         .map(|p| p.chars().map(T::from_char).collect())
         .collect()
 }
+
+pub type Coord = (isize, isize);
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
+impl Direction {
+    pub const fn next_coord(self, location: &Coord) -> Coord {
+        match self {
+            Self::Up => (location.0 - 1, location.1),
+            Self::Right => (location.0, location.1 + 1),
+            Self::Down => (location.0 + 1, location.1),
+            Self::Left => (location.0, location.1 - 1),
+        }
+    }
+}

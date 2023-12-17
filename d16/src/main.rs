@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use aoc_utils::{puzzle_matrix, Cli, FromChar};
+use aoc_utils::{puzzle_matrix, Cli, Coord, Direction, FromChar};
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -21,7 +21,7 @@ fn energized_tiles(input: impl AsRef<Path>) -> usize {
     let contraption = puzzle_matrix::<Tile>(&read_to_string(input).unwrap());
     let start_beam = Beam {
         location: (0, 0),
-        direction: Direction::Right,
+        direction: BeamDirection(Direction::Right),
     };
     fire_beam(&contraption, start_beam)
 }
@@ -68,28 +68,28 @@ fn create_beams(size: usize) -> Vec<Beam> {
     let mut top = (0..size)
         .map(|i| Beam {
             location: (0, i as isize),
-            direction: Direction::Down,
+            direction: BeamDirection(Direction::Down),
         })
         .collect::<Vec<_>>();
 
     let left = (0..size)
         .map(|i| Beam {
             location: (i as isize, 0),
-            direction: Direction::Right,
+            direction: BeamDirection(Direction::Right),
         })
         .collect::<Vec<_>>();
 
     let right = (0..size)
         .map(|i| Beam {
             location: (i as isize, size as isize),
-            direction: Direction::Left,
+            direction: BeamDirection(Direction::Left),
         })
         .collect::<Vec<_>>();
 
     let bottom = (0..size)
         .map(|i| Beam {
             location: (size as isize, i as isize),
-            direction: Direction::Up,
+            direction: BeamDirection(Direction::Up),
         })
         .collect::<Vec<_>>();
 
@@ -144,31 +144,20 @@ impl Tile {
     }
 }
 
-type Coord = (isize, isize);
 type Contraption = Vec<Vec<Tile>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Beam {
     location: Coord,
-    direction: Direction,
+    direction: BeamDirection,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
+struct BeamDirection(Direction);
 
-impl Direction {
+impl BeamDirection {
     const fn next_beam(self, location: &Coord) -> Beam {
-        let new_location = match self {
-            Self::Up => (location.0 - 1, location.1),
-            Self::Right => (location.0, location.1 + 1),
-            Self::Down => (location.0 + 1, location.1),
-            Self::Left => (location.0, location.1 - 1),
-        };
+        let new_location = self.0.next_coord(location);
 
         Beam {
             location: new_location,
@@ -177,34 +166,34 @@ impl Direction {
     }
 
     const fn reflect_right(self) -> Self {
-        match self {
-            Self::Up => Self::Right,
-            Self::Right => Self::Up,
-            Self::Down => Self::Left,
-            Self::Left => Self::Down,
-        }
+        Self(match self.0 {
+            Direction::Up => Direction::Right,
+            Direction::Right => Direction::Up,
+            Direction::Down => Direction::Left,
+            Direction::Left => Direction::Down,
+        })
     }
 
     const fn reflect_left(self) -> Self {
-        match self {
-            Self::Up => Self::Left,
-            Self::Right => Self::Down,
-            Self::Down => Self::Right,
-            Self::Left => Self::Up,
-        }
+        Self(match self.0 {
+            Direction::Up => Direction::Left,
+            Direction::Right => Direction::Down,
+            Direction::Down => Direction::Right,
+            Direction::Left => Direction::Up,
+        })
     }
 
     fn split_horizontal(self) -> Vec<Self> {
-        match self {
-            Self::Up | Self::Down => vec![Self::Left, Self::Right],
-            Self::Right | Self::Left => vec![self],
+        match self.0 {
+            Direction::Up | Direction::Down => vec![Self(Direction::Left), Self(Direction::Right)],
+            Direction::Right | Direction::Left => vec![self],
         }
     }
 
     fn split_vertical(self) -> Vec<Self> {
-        match self {
-            Self::Left | Self::Right => vec![Self::Up, Self::Down],
-            Self::Up | Self::Down => vec![self],
+        match self.0 {
+            Direction::Left | Direction::Right => vec![Self(Direction::Up), Self(Direction::Down)],
+            Direction::Up | Direction::Down => vec![self],
         }
     }
 }
