@@ -54,6 +54,9 @@ fn minimum_heat_loss(input: impl AsRef<Path>, ultra: bool) -> usize {
         }
 
         for valid_move in valid_moves(&graph, &current_state, ultra) {
+            if ultra && valid_move.position == goal && valid_move.dir_count < 4 {
+                continue;
+            }
             let next = State {
                 cost: current_state.cost + valid_move.cost,
                 position: valid_move.position,
