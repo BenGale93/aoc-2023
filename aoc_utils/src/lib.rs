@@ -44,11 +44,12 @@ pub trait FromChar {
 
 /// Parses the puzzle input as a matrix of type T.
 ///
-/// Type T is usually an enum and implements FromChar which
+/// Type T is usually an enum and implements `FromChar` which
 /// takes each character in the input and maps it to an enum variant.
 ///
 /// # Panics
 /// Assumes the puzzle has a blank line at the bottom.
+#[must_use]
 pub fn puzzle_matrix<T: FromChar>(input: &str) -> Vec<Vec<T>> {
     let input = input.strip_suffix('\n').unwrap();
 

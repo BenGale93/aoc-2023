@@ -80,7 +80,7 @@ fn valid_moves(graph: &HashMap<Coord, usize>, current_state: &State, ultra: bool
         .direction
         .valid_directions(current_state.dir_count, ultra)
     {
-        let next_coord = direction.next_cord(&current_state.position);
+        let next_coord = direction.next_coord(&current_state.position);
         let Some(next_cost) = graph.get(&next_coord) else {
             continue;
         };
@@ -115,22 +115,19 @@ impl Direction {
             Self::Right => vec![Self::Up, Self::Down, Self::Right],
             Self::Down => vec![Self::Left, Self::Right, Self::Down],
         };
-        if !ultra {
-            if dir_count >= 3 {
-                potential_directions.pop();
-            }
-            potential_directions
-        } else {
+        if ultra {
             if dir_count < 4 {
                 return vec![self];
             } else if dir_count >= 10 {
                 potential_directions.pop();
             }
-            potential_directions
+        } else if dir_count >= 3 {
+            potential_directions.pop();
         }
+        potential_directions
     }
 
-    fn next_cord(self, location: &Coord) -> Coord {
+    const fn next_coord(self, location: &Coord) -> Coord {
         match self {
             Self::Up => (location.0 - 1, location.1),
             Self::Right => (location.0, location.1 + 1),
@@ -151,7 +148,7 @@ struct State {
 }
 
 impl State {
-    fn without_cost(&self) -> (Coord, usize, Direction) {
+    const fn without_cost(&self) -> (Coord, usize, Direction) {
         (self.position, self.dir_count, self.direction)
     }
 }
