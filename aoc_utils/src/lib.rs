@@ -71,11 +71,15 @@ pub enum Direction {
 
 impl Direction {
     pub const fn next_coord(self, location: &Coord) -> Coord {
+        self.next_coord_far(location, 1)
+    }
+
+    pub const fn next_coord_far(self, location: &Coord, distance: isize) -> Coord {
         match self {
-            Self::Up => (location.0 - 1, location.1),
-            Self::Right => (location.0, location.1 + 1),
-            Self::Down => (location.0 + 1, location.1),
-            Self::Left => (location.0, location.1 - 1),
+            Self::Up => (location.0 - distance, location.1),
+            Self::Right => (location.0, location.1 + distance),
+            Self::Down => (location.0 + distance, location.1),
+            Self::Left => (location.0, location.1 - distance),
         }
     }
 }

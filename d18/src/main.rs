@@ -17,17 +17,17 @@ fn lava_volume(input: impl AsRef<Path>) -> isize {
     let dig_plan = parse_puzzle(input);
     let mut coordinates: Vec<Coord> = vec![];
     let mut current_position: Coord = (0, 0);
+    let mut boundary_length = 0;
     for record in &dig_plan {
-        for _ in 0..record.distance {
-            current_position = record.direction.next_coord(&current_position);
-        }
+        current_position = record
+            .direction
+            .next_coord_far(&current_position, record.distance);
+        boundary_length += record.distance;
         coordinates.push(current_position);
     }
     let area = shoelace_formula(&coordinates);
 
     // Pick's theorem
-    let boundary_length: isize = dig_plan.iter().map(|r| r.distance).sum();
-
     let internal_points = area + 1 - (boundary_length / 2);
 
     boundary_length + internal_points
@@ -40,9 +40,7 @@ fn lava_volume_hex(input: impl AsRef<Path>) -> isize {
     let mut boundary_length = 0;
     for record in &dig_plan {
         let (direction, distance) = record.hex_instruction();
-        for _ in 0..distance {
-            current_position = direction.next_coord(&current_position);
-        }
+        current_position = direction.next_coord_far(&current_position, distance);
         boundary_length += distance;
         coordinates.push(current_position);
     }
