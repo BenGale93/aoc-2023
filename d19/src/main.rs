@@ -1,4 +1,8 @@
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::{HashMap, VecDeque},
+    ops::Range,
+    path::Path,
+};
 
 use aoc_utils::Cli;
 use nom::{
@@ -12,7 +16,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        rating_combinations("input")
     } else {
         rating_sum("input")
     };
@@ -37,6 +41,38 @@ fn rating_sum(input: impl AsRef<Path>) -> usize {
     }
 
     accepted_sum
+}
+
+fn rating_combinations(input: impl AsRef<Path>) -> usize {
+    let (workflows, _) = parse_puzzle(input);
+    let start_range = PartRange::new();
+    let mut queue = VecDeque::new();
+    queue.push_back(("in".to_owned(), start_range));
+    let mut accepted_ranges = vec![];
+    while let Some((workflow, mut range)) = queue.pop_front() {
+        if workflow == "A" {
+            accepted_ranges.push(range);
+            continue;
+        } else if workflow == "R" {
+            continue;
+        }
+
+        let workflow = workflows.get(&workflow).unwrap();
+        for rule in workflow {
+            match rule {
+                Rule::Destination(d) => {
+                    queue.push_back((d.to_owned(), range));
+                    break;
+                }
+                Rule::Comparison(c) => {
+                    let result = c.trim_range(&range);
+                    queue.push_back(result);
+                    c.bad_trim(&mut range);
+                }
+            }
+        }
+    }
+    accepted_ranges.iter().map(|p| p.total_ratings()).sum()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -70,6 +106,30 @@ impl Part {
     }
 }
 
+#[derive(Debug, Clone)]
+struct PartRange {
+    x: Range<usize>,
+    m: Range<usize>,
+    a: Range<usize>,
+    s: Range<usize>,
+}
+
+impl PartRange {
+    fn new() -> Self {
+        let max_range = 1..4001;
+        Self {
+            x: max_range.clone(),
+            m: max_range.clone(),
+            a: max_range.clone(),
+            s: max_range.clone(),
+        }
+    }
+
+    fn total_ratings(&self) -> usize {
+        self.x.len() * self.m.len() * self.a.len() * self.s.len()
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 enum Category {
     X,
@@ -94,7 +154,7 @@ struct ComparisonRule {
 
 impl ComparisonRule {
     fn parse(input: &str) -> IResult<&str, Self> {
-        let (input, (category, comparison, value, _, destination)) =
+        let (_, (category, comparison, value, _, destination)) =
             tuple((one_of("xmas"), one_of("<>"), digit1, tag(":"), alpha1))(input)?;
         let category = match category {
             'x' => Category::X,
@@ -140,6 +200,45 @@ impl ComparisonRule {
             None
         }
     }
+
+    fn trim_range(&self, part_range: &PartRange) -> (String, PartRange) {
+        let mut new_range = part_range.clone();
+        let category = match self.category {
+            Category::A => &mut new_range.a,
+            Category::M => &mut new_range.m,
+            Category::S => &mut new_range.s,
+            Category::X => &mut new_range.x,
+        };
+
+        match self.comparison {
+            Comparison::GreaterThan => {
+                category.start = (self.value + 1).max(category.start);
+            }
+            Comparison::LessThan => {
+                category.end = (self.value).min(category.end);
+            }
+        };
+
+        (self.destination.to_owned(), new_range)
+    }
+
+    fn bad_trim(&self, part_range: &mut PartRange) {
+        let category = match self.category {
+            Category::A => &mut part_range.a,
+            Category::M => &mut part_range.m,
+            Category::S => &mut part_range.s,
+            Category::X => &mut part_range.x,
+        };
+
+        match self.comparison {
+            Comparison::LessThan => {
+                category.start = (self.value).max(category.start);
+            }
+            Comparison::GreaterThan => {
+                category.end = (self.value + 1).min(category.end);
+            }
+        };
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -168,6 +267,7 @@ impl Rule {
 }
 
 type Workflow = Vec<Rule>;
+type Workflows = HashMap<String, Workflow>;
 
 fn evaluate_workflow(workflow: &Workflow, part: &Part) -> String {
     for rule in workflow {
@@ -189,7 +289,7 @@ fn parse_workflow(input: &str) -> IResult<&str, (String, Workflow)> {
     Ok(("", (destination.to_string(), rules)))
 }
 
-fn parse_puzzle(input: impl AsRef<Path>) -> (HashMap<String, Workflow>, Vec<Part>) {
+fn parse_puzzle(input: impl AsRef<Path>) -> (Workflows, Vec<Part>) {
     let input = std::fs::read_to_string(input).unwrap();
 
     let input: Vec<_> = input.trim().split("\n\n").collect();
@@ -216,5 +316,11 @@ mod tests {
     fn part_one() {
         let result = rating_sum("test_part1");
         assert_eq!(result, 19114);
+    }
+
+    #[test]
+    fn part_two() {
+        let result = rating_combinations("test_part1");
+        assert_eq!(result, 167409079868000);
     }
 }
