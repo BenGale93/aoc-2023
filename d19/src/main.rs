@@ -21,7 +21,22 @@ fn main() {
 
 fn rating_sum(input: impl AsRef<Path>) -> usize {
     let (workflows, parts) = parse_puzzle(input);
-    todo!()
+    let mut accepted_sum: usize = 0;
+    for part in &parts {
+        let mut destination = "in".to_string();
+        loop {
+            let workflow = workflows.get(&destination).unwrap();
+            destination = evaluate_workflow(workflow, part);
+            if &destination == "A" {
+                accepted_sum += part.total_rating();
+                break;
+            } else if &destination == "R" {
+                break;
+            }
+        }
+    }
+
+    accepted_sum
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -48,6 +63,10 @@ impl Part {
                 s: s.parse().unwrap(),
             },
         ))
+    }
+
+    fn total_rating(&self) -> usize {
+        self.x + self.m + self.a + self.s
     }
 }
 
@@ -101,6 +120,26 @@ impl ComparisonRule {
             },
         ))
     }
+
+    fn evaluate(&self, part: &Part) -> Option<String> {
+        let category = match self.category {
+            Category::A => part.a,
+            Category::M => part.m,
+            Category::S => part.s,
+            Category::X => part.x,
+        };
+
+        let condition = match self.comparison {
+            Comparison::GreaterThan => category > self.value,
+            Comparison::LessThan => category < self.value,
+        };
+
+        if condition {
+            Some(self.destination.clone())
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -119,9 +158,26 @@ impl Rule {
             Self::Comparison(ComparisonRule::parse(input).unwrap().1),
         ))
     }
+
+    fn evaluate(&self, part: &Part) -> Option<String> {
+        match self {
+            Self::Comparison(r) => r.evaluate(part),
+            Self::Destination(d) => Some(d.clone()),
+        }
+    }
 }
 
 type Workflow = Vec<Rule>;
+
+fn evaluate_workflow(workflow: &Workflow, part: &Part) -> String {
+    for rule in workflow {
+        let destination = rule.evaluate(part);
+        if let Some(destination) = destination {
+            return destination;
+        }
+    }
+    "".to_owned()
+}
 
 fn parse_workflow(input: &str) -> IResult<&str, (String, Workflow)> {
     let (workflow, (destination, _)) = tuple((alpha1, tag("{")))(input)?;
