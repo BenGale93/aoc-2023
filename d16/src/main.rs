@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use aoc_utils::{puzzle_matrix, Cli, Coord, Direction, FromChar};
+use aoc_utils::{out_of_bounds, puzzle_matrix, Cli, Coord, Direction, FromChar};
 
 fn main() {
     let part_two = Cli::parse_args().part_two;
@@ -196,10 +196,6 @@ impl BeamDirection {
             Direction::Up | Direction::Down => vec![self],
         }
     }
-}
-
-const fn out_of_bounds(coord: &Coord, size: isize) -> bool {
-    coord.0 < 0 || coord.1 < 0 || coord.0 >= size || coord.1 >= size
 }
 
 #[cfg(test)]

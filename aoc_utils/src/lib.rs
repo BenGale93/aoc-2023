@@ -61,6 +61,10 @@ pub fn puzzle_matrix<T: FromChar>(input: &str) -> Vec<Vec<T>> {
 
 pub type Coord = (isize, isize);
 
+pub const fn out_of_bounds(coord: &Coord, size: isize) -> bool {
+    coord.0 < 0 || coord.1 < 0 || coord.0 >= size || coord.1 >= size
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Direction {
     Up,
