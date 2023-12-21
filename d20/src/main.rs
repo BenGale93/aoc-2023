@@ -9,7 +9,7 @@ fn main() {
     let part_two = Cli::parse_args().part_two;
 
     let result = if part_two {
-        todo!()
+        pulse_rx("input")
     } else {
         pulse_multiple("input")
     };
@@ -57,6 +57,11 @@ fn pulse_multiple(input: impl AsRef<Path>) -> usize {
     }
 
     pulse_count.pulse_multiple()
+}
+
+fn pulse_rx(input: impl AsRef<Path>) -> usize {
+    let mut module_map = parse_puzzle(input);
+    todo!()
 }
 
 type Name = String;
